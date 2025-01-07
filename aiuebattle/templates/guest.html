@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゲストページ</title>
+    <script src="/static/js/guest.js" defer></script>
+</head>
+<body>
+    <h1>ゲストページ</h1>
+    <p id="themeDisplay">テーマ:</p>
+    <form id="guestForm">
+		<div>
+			<label for="playerName">プレイヤーネーム:</label>
+			<input type="text" id="playerName" name="playerName" required>
+		</div>
+		<div>
+			<label for="keyword">キーワード（ひらがな2～7文字）:</label>
+			<input type="text" id="keyword" name="keyword" pattern="^[\u3041-\u3096ー]{2,7}$" required>
+		</div>
+        <button type="submit">参加する</button>
+    </form>
+    <p id="errorMessage" style="color: red;"></p>
+</body>
+</html>

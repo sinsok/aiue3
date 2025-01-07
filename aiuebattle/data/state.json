@@ -1,0 +1,17 @@
+{
+    "theme": "飲み物2",
+    "player_count": 2,
+    "players": [
+        {
+            "name": "サボテン",
+            "keyword": "ほかりすえつと",
+            "revealed": []
+        },
+        {
+            "name": "アロエ",
+            "keyword": "みす",
+            "revealed": []
+        }
+    ],
+    "game_started": true
+}
