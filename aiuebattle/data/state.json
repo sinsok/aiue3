@@ -1,17 +1,19 @@
 {
-    "theme": "飲み物2",
+    "theme": "漫画",
+    "current_player_index": 0,
     "player_count": 2,
     "players": [
         {
-            "name": "サボテン",
-            "keyword": "ほかりすえつと",
+            "name": "しんそく",
+            "keyword": "とらえもん",
             "revealed": []
         },
         {
-            "name": "アロエ",
-            "keyword": "みす",
+            "name": "たろう",
+            "keyword": "はーまん",
             "revealed": []
         }
     ],
+    "used_kana": [],
     "game_started": true
 }

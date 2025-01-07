@@ -7,8 +7,9 @@ rem 仮想環境からアプリケーションを開始する
 rem
 
 rem 処理START
+cd /d %~dp0\
 
-call C:\Users\k-hirano.ICC\aiue\Scripts\activate
+call venv\Scripts\activate
 
 cd /d %~dp0\
 python app.py

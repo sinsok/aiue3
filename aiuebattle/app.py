@@ -31,7 +31,7 @@ def add_log(message):
 
 @app.route("/")
 def index():
-    return redirect(url_for("host"))
+    return redirect(url_for("guest"))
 
 @app.route("/host", methods=["GET", "POST"])
 def host():
@@ -39,13 +39,29 @@ def host():
         data = request.form
         state = {
             "theme": data["theme"],
+            "current_player_index": 0,
             "player_count": int(data["player_count"]),
             "players": [],
+            "used_kana": [],
             "game_started": False
         }
         save_game_state(state)
         return redirect(url_for("guest"))
     return render_template("host.html")
+
+@app.route("/reset")
+def reset_game():
+    #ゲームをリセットする
+    state = {
+        "theme": "",
+        "current_player_index": 0,
+        "player_count": int(data["player_count"]),
+        "players": [],
+        "used_kana": [],
+        "log": ["ゲームがリセットされました。"]
+    }
+    save_game_state(state)
+    return jsonify({"result": "success", "message": "ゲームをリセットしました。"})
 
 @app.route('/guest', endpoint='guest')
 def guest():
@@ -77,6 +93,7 @@ def waiting():
     state = load_game_state()
     if not state:
         return "ゲームはまだ開始されていません。ホストを設定してください。"
+    #即ゲーム開始されると違和感があるので廃止
     if len(state["players"]) == state["player_count"]:
         state["game_started"] = True
         save_game_state(state)
@@ -115,20 +132,6 @@ def game_action():
         add_log(f'{current_player["name"]}が既に使用された「{selected_kana}」を選択しました。')
 
     return jsonify({"result": "success"})
-
-
-@app.route("/reset")
-def reset_game():
-    #ゲームをリセットする
-    state = {
-        "theme": "",
-        "current_player_index": 0,
-        "players": [],
-        "used_kana": [],
-        "log": ["ゲームがリセットされました。"]
-    }
-    save_game_state(state)
-    return jsonify({"result": "success", "message": "ゲームをリセットしました。"})
 
 
 @app.route("/game_state", methods=["GET"])
