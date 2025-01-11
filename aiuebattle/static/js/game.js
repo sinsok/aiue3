@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ゲーム状態を更新する関数
     const updateGameState = () => {
+
         fetch("/game_state")
             .then((response) => response.json())
             .then((state) => {
@@ -39,9 +40,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     };
 
+    // 初回の更新を実行
+    updateGameState();
     // 5秒ごとにゲーム状態を更新
     setInterval(updateGameState, 5000);
 
-    // 初回の更新を実行
-    updateGameState();
 });

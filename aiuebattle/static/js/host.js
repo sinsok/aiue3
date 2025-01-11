@@ -23,6 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("エラーが発生しました:", error);
             });
     });
+	
+	document.getElementById("start-btn").addEventListener("click", function () {
+		// ゲーム開始時の処理
+		document.getElementById("start-btn").disabled = true;
+		document.getElementById("reset-btn").disabled = false;
+	});
 
 	//★ゲームリセット
     const resetButton = document.querySelector("#resetButton");
@@ -39,6 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.result === "success") {
                     resetStatus.textContent = data.message;
                     resetStatus.style.color = "green";
+					document.getElementById("start-btn").disabled = false;
+					document.getElementById("reset-btn").disabled = true;
                 } else {
                     resetStatus.textContent = "リセットに失敗しました。";
                     resetStatus.style.color = "red";
