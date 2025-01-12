@@ -32,16 +32,15 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({ playerName, keyword }),
         })
             .then((response) => response.json())
-            .then((data) => {
-                if (data.result === "success") {
-                    window.location.href = "/waiting"; // 待機ページへ移動
-                } else {
-                    errorMessage.textContent = data.message || "エラーが発生しました。";
-                }
-            })
-            .catch(() => {
-                errorMessage.textContent = "サーバーとの通信に失敗しました。";
-            });
+			.then((data) => {
+				// サーバーからプレイヤーインデックスを受け取り、待機画面にリダイレクト
+				if (data.player_index !== undefined) {
+					window.location.href = `/waiting?player_index=${data.player_index}`;
+				} else {
+					alert("エラーが発生しました。もう一度試してください。");
+				}
+			})
+			.catch((error) => console.error("参加エラー:", error));
     });
 
     fetchTheme(); // 初回テーマ取得

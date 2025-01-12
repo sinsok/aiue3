@@ -17,9 +17,10 @@ def save_game_state(state):
     with open(GAME_STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=4)
 
-def add_log(message):
-    #ゲームログにメッセージを追加する
-    state = load_game_state()
+
+def add_log(state, message):
+    print(f"[Game Log] {message}")  # コンソールにログを出力
+    
     if "log" not in state:
         state["log"] = []
     state["log"].append(message)
@@ -27,7 +28,9 @@ def add_log(message):
     # ログの長さを制限（例: 最大50件まで保持）
     if len(state["log"]) > 50:
         state["log"].pop(0)
-    save_game_state(state)
+    
+    return state
+
 
 @app.route("/")
 def index():
@@ -43,7 +46,10 @@ def host():
             "player_count": int(data["player_count"]),
             "players": [],
             "used_kana": [],
-            "game_started": False
+            "game_started": False,
+            "game_finished": False,
+            "consecutive_turns": 0,
+            "log": ["ゲームが開始されました。"]
         }
         save_game_state(state)
         return redirect(url_for("guest"))
@@ -84,31 +90,41 @@ def join_game():
     if any(char not in "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんー" for char in keyword):
         return jsonify({"result": "error", "message": "キーワードはひらがな（清音＋伸ばし棒）のみを使用してください。"})
 
-    state["players"].append({"name": player_name, "keyword": keyword, "revealed": []})
+    state["players"].append({
+        "name": player_name,
+        "keyword": keyword,
+        "revealed": "？" * 7,
+        "eliminated": False
+    })
+
+    # プレイヤーインデックスを付与
+    player_index = None
+    for i, player in enumerate(state["players"]):
+        if player["name"] == player_name:
+            player_index = i
+            break
+
     save_game_state(state)
-    return jsonify({"result": "success"})
+    if player_index is not None:
+        return jsonify({"player_index": player_index})
+    else:
+        return jsonify({"error": "Player not found"}), 400
 
 @app.route("/waiting")
 def waiting():
     state = load_game_state()
     if not state:
         return "ゲームはまだ開始されていません。ホストを設定してください。"
-    #即ゲーム開始されると違和感があるので廃止
-    if len(state["players"]) == state["player_count"]:
-        state["game_started"] = True
-        save_game_state(state)
-        return redirect(url_for("game"))
     return render_template("waiting.html", players=state["players"], player_count=state["player_count"])
 
 @app.route("/game")
 def game():
     state = load_game_state()
-    if not state.get("game_started"):
-        return redirect(url_for("waiting"))
-    return render_template("game.html", state=state)
+    return render_template("game.html")
 
 
-@app.route("/game", methods=["POST"])
+
+@app.route("/game_action", methods=["POST"])
 def game_action():
     state = load_game_state()
     data = request.get_json()
@@ -118,19 +134,69 @@ def game_action():
     # 使用済み文字に追加
     if selected_kana not in state["used_kana"]:
         state["used_kana"].append(selected_kana)
+        state = add_log(state, f'{current_player["name"]}が「{selected_kana}」を選択しました。')
 
-        # 公開情報を更新
-        if selected_kana in current_player["keyword"]:
-            current_player["revealed"].append(selected_kana)
-            add_log(f'{current_player["name"]}が「{selected_kana}」を選択し、ヒットしました！')
-        else:
-            add_log(f'{current_player["name"]}が「{selected_kana}」を選択しましたが、ヒットしませんでした。')
+        hit = False
+                
+        # 全プレイヤーのキーワードをチェック
+        for player in state["players"]:
+            hit = False
+            # キーワード内の選択された文字の位置を特定し、その位置に文字を表示
+            new_revealed = list(player["revealed"])
+            for i, char in enumerate(player["keyword"]):
+                if char == selected_kana:
+                    new_revealed[i] = selected_kana
+                    hit = True
+            if hit:
+                player["revealed"] = "".join(new_revealed)
+                state = add_log(state, f'{player["name"]}のキーワードに「{selected_kana}」がヒットしました！')
+                # キーワードの中で？以外の文字が全て公開されているかチェック
+                revealed_chars = set(char for char in player["revealed"] if char != "？")
+                keyword_chars = set(player["keyword"])
+                
+                # キーワードが完全に公開されたかチェック
+                if revealed_chars == keyword_chars:
+                    state = add_log(state, f'{player["name"]}のキーワードが完全に公開され、失格となりました。')
+                    player["eliminated"] = True
 
-        # 手番を次のプレイヤーに変更
-        state["current_player_index"] = (state["current_player_index"] + 1) % len(state["players"])
+        # 勝者チェック
+        active_players = [p for p in state["players"] if not p.get("eliminated", False)]
+        if len(active_players) == 1:
+            winner = active_players[0]
+            state = add_log(state, f'🎉 {winner["name"]}の勝利！ ゲーム終了')
+            state["game_finished"] = True
+        elif len(active_players) == 0:
+            state = add_log(state, f'全員失格！ 引き分け')
+            state["game_finished"] = True
+
+        # ゲームが終了していない場合のみ、次のプレイヤーに手番を移す
+        if not state.get("game_finished"):
+            # ヒットがあり、連続手番が2回未満の場合は同じプレイヤーの手番を継続
+            if hit and state.get("consecutive_turns", 0) < 1:
+                state["consecutive_turns"] = state.get("consecutive_turns", 0) + 1
+                state = add_log(state, f'ヒットしたので{current_player["name"]}の手番が続きます。')
+            else:
+                # 次のプレイヤーを探す
+                state["consecutive_turns"] = 0  # 連続手番カウンターをリセット
+                next_player_found = False
+                initial_index = state["current_player_index"]
+                
+                while not next_player_found:
+                    state["current_player_index"] = (state["current_player_index"] + 1) % state["player_count"]
+                    # 一周して戻ってきた場合はエラー防止のため中断
+                    if state["current_player_index"] == initial_index:
+                        break
+                    
+                    # 失格していないプレイヤーが見つかった場合
+                    if not state["players"][state["current_player_index"]]["eliminated"]:
+                        next_player_found = True
+                        current_player = state["players"][state["current_player_index"]]
+                        state = add_log(state, f'次は{current_player["name"]}のターンです。')
+
     else:
-        add_log(f'{current_player["name"]}が既に使用された「{selected_kana}」を選択しました。')
+        state = add_log(state, f'{current_player["name"]}が既に使用された「{selected_kana}」を選択しました。')
 
+    save_game_state(state)
     return jsonify({"result": "success"})
 
 

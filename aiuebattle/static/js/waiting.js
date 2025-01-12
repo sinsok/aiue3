@@ -1,7 +1,16 @@
+function getPlayerIndexFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("player_index");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const playerCount = document.querySelector("#playerCount");
     const waitMessage = document.querySelector("#waitMessage");
-
+	const playerIndex = getPlayerIndexFromUrl();
+    if (!playerIndex) {
+        alert("プレイヤー情報が見つかりません。");
+        return;
+    }
     // サーバーからゲーム状態を定期的に取得する
     const updateWaitState = () => {
         fetch("/game_state")
@@ -20,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (totalPlayers === requiredPlayers) {
                     waitMessage.textContent = "ゲームを開始します...";
                     setTimeout(() => {
-                        window.location.href = "/game"; // ゲームページへ移動
+                        window.location.href = `/game?player_index=${playerIndex}`; // ゲームページへ移動
                     }, 2000); // 2秒後にゲームページへ遷移
                 }
             })
