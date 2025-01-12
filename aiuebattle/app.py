@@ -140,24 +140,22 @@ def game_action():
                 
         # 全プレイヤーのキーワードをチェック
         for player in state["players"]:
-            hit = False
             # キーワード内の選択された文字の位置を特定し、その位置に文字を表示
             new_revealed = list(player["revealed"])
             for i, char in enumerate(player["keyword"]):
                 if char == selected_kana:
                     new_revealed[i] = selected_kana
                     hit = True
-            if hit:
-                player["revealed"] = "".join(new_revealed)
-                state = add_log(state, f'{player["name"]}のキーワードに「{selected_kana}」がヒットしました！')
-                # キーワードの中で？以外の文字が全て公開されているかチェック
-                revealed_chars = set(char for char in player["revealed"] if char != "？")
-                keyword_chars = set(player["keyword"])
+                    player["revealed"] = "".join(new_revealed)
+                    state = add_log(state, f'{player["name"]}のキーワードに「{selected_kana}」がヒットしました！')
+                    # キーワードの中で？以外の文字が全て公開されているかチェック
+                    revealed_chars = set(char for char in player["revealed"] if char != "？")
+                    keyword_chars = set(player["keyword"])
                 
-                # キーワードが完全に公開されたかチェック
-                if revealed_chars == keyword_chars:
-                    state = add_log(state, f'{player["name"]}のキーワードが完全に公開され、失格となりました。')
-                    player["eliminated"] = True
+                    # キーワードが完全に公開されたかチェック
+                    if revealed_chars == keyword_chars:
+                        state = add_log(state, f'{player["name"]}のキーワードが完全に公開され、失格となりました。')
+                        player["eliminated"] = True
 
         # 勝者チェック
         active_players = [p for p in state["players"] if not p.get("eliminated", False)]
