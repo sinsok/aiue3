@@ -27,10 +27,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     }, 2000); // 2秒後にゲストページへ遷移
 				}
                 if (totalPlayers === requiredPlayers) {
-                    waitMessage.textContent = "ゲームを開始します...";
-                    setTimeout(() => {
-                        window.location.href = `/game?player_index=${playerIndex}`; // ゲームページへ移動
-                    }, 2000); // 2秒後にゲームページへ遷移
+                    // プレイヤーが揃った時点でgame_startedをTrueに設定
+                    fetch("/start_game", {
+                        method: "POST"
+                    }).then(() => {
+                        waitMessage.textContent = "ゲームを開始します...";
+                        setTimeout(() => {
+                            window.location.href = `/game?player_index=${playerIndex}`; // ゲームページへ移動
+                        }, 2000); // 2秒後にゲームページへ遷移
+                    });
                 }
             })
             .catch(() => {

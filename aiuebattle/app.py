@@ -147,14 +147,14 @@ def game_action():
                     new_revealed[i] = selected_kana
                     hit = True
                     player["revealed"] = "".join(new_revealed)
-                    state = add_log(state, f'{player["name"]}のキーワードに「{selected_kana}」がヒットしました！')
+                    state = add_log(state, f'💥{player["name"]}のキーワードに「{selected_kana}」がヒットしました！')
                     # キーワードの中で？以外の文字が全て公開されているかチェック
                     revealed_chars = set(char for char in player["revealed"] if char != "？")
                     keyword_chars = set(player["keyword"])
                 
                     # キーワードが完全に公開されたかチェック
                     if revealed_chars == keyword_chars:
-                        state = add_log(state, f'{player["name"]}のキーワードが完全に公開され、失格となりました。')
+                        state = add_log(state, f'💀{player["name"]}のキーワードが完全に公開され、失格となりました')
                         player["eliminated"] = True
 
         # 勝者チェック
@@ -163,9 +163,21 @@ def game_action():
             winner = active_players[0]
             state = add_log(state, f'🎉 {winner["name"]}の勝利！ ゲーム終了')
             state["game_finished"] = True
+            # 全プレイヤーのキーワードを公開
+            for player in state["players"]:
+                new_revealed = ""
+                for i, char in enumerate(player["keyword"]):
+                    new_revealed += char
+                player["revealed"] = new_revealed
         elif len(active_players) == 0:
             state = add_log(state, f'全員失格！ 引き分け')
             state["game_finished"] = True
+            # 全プレイヤーのキーワードを公開
+            for player in state["players"]:
+                new_revealed = ""
+                for i, char in enumerate(player["keyword"]):
+                    new_revealed += char
+                player["revealed"] = new_revealed
 
         # ゲームが終了していない場合のみ、次のプレイヤーに手番を移す
         if not state.get("game_finished"):
@@ -202,6 +214,13 @@ def game_action():
 def game_state():
     state = load_game_state()
     return jsonify(state)
+
+@app.route("/start_game", methods=["POST"])
+def start_game():
+    state = load_game_state()
+    state["game_started"] = True
+    save_game_state(state)
+    return jsonify({"result": "success"})
 
 if __name__ == "__main__":
     app.run(debug=True)

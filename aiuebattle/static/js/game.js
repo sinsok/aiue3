@@ -49,14 +49,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // ゲーム終了時またはターンが自分でない場合はボタンを無効化
                 kanaButtons.forEach((button) => {
-                    button.disabled = state.game_finished || !isMyTurn;
-                });
-
-                // 使用済みのボタンを無効化
-                kanaButtons.forEach((button) => {
                     const kana = button.textContent;
                     if (state.used_kana.includes(kana)) {
                         button.disabled = true;
+                        button.classList.add('used');  // 使用済みクラスを追加
+                    } else if (!isMyTurn) {
+                        button.disabled = true;
+                        button.classList.remove('used');  // 未使用のボタンからusedクラスを削除
+                    } else {
+                        button.disabled = false;
+                        button.classList.remove('used');
                     }
                 });
 
@@ -81,6 +83,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 // ログメッセージを更新
                 if (state.log && state.log.length > 0) {
                     updateLog(state.log);
+                }
+
+                // ゲーム終了かつ新しいゲームが開始されている場合のみボタンを表示
+                const returnButton = document.querySelector("#returnToGuest");
+                if (!state.game_finished && state.theme) {
+                    returnButton.style.display = "block";
+                    returnButton.addEventListener("click", () => {
+                        window.location.href = "/guest";
+                    });
+                } else {
+                    returnButton.style.display = "none";
                 }
             })
             .catch((error) => {
@@ -112,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 初回の更新を実行
     updateGameState();
-    // 5秒ごとにゲーム状態を更新
-    setInterval(updateGameState, 5000);
+    // 1秒ごとにゲーム状態を更新
+    setInterval(updateGameState, 1000);
 });
 
