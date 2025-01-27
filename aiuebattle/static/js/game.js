@@ -66,17 +66,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 playerList.innerHTML = "";
                 state.players.forEach((player, index) => {
                     const playerItem = document.createElement("li");
-                    let playerText = `${player.name} (キーワード: ${player.revealed})`;
                     
+                    // プレイヤー名を表示
+                    const nameElement = document.createElement("span");
+                    nameElement.textContent = player.name;
+                    nameElement.style.display = "inline-block"; // インラインブロックに設定
+                    nameElement.style.width = "100px"; // 固定幅を設定
+
+                    // 失格表示
+                    const eliminatedElement = document.createElement("span");
+                    eliminatedElement.textContent = player.eliminated ? " 【失格】" : "";
+                    
+                    // 失格の場合、取り消し線をプレイヤー名にも適用
                     if (player.eliminated) {
-                        playerText += " 【失格】";
+                        nameElement.style.textDecoration = "line-through";  // 取り消し線
                         playerItem.style.textDecoration = "line-through";  // 取り消し線
+                        nameElement.style.color = "#888";  // グレーアウト
                         playerItem.style.color = "#888";  // グレーアウト
                     } else if (currentPlayerIndex === index) {
-                        playerItem.style.color = "red";  // 手番プレイヤーを赤色で表示
+                        nameElement.style.color = "red";  // 手番プレイヤーを赤色で表示
                     }
+
+                    // キーワード表示
+                    const keywordElement = document.createElement("span");
+                    keywordElement.textContent = ` キーワード：${player.revealed}`;
                     
-                    playerItem.textContent = playerText;
+                    // 要素をリストアイテムに追加
+                    playerItem.appendChild(nameElement);
+                    playerItem.appendChild(keywordElement);
+                    playerItem.appendChild(eliminatedElement);
+                    
                     playerList.appendChild(playerItem);
                 });
 
@@ -87,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // ゲーム終了かつ新しいゲームが開始されている場合のみボタンを表示
                 const returnButton = document.querySelector("#returnToGuest");
-                if (!state.game_finished && state.theme) {
+                if (!state.game_started && !state.game_finished && state.theme) {
                     returnButton.style.display = "block";
                     returnButton.addEventListener("click", () => {
                         window.location.href = "/guest";
