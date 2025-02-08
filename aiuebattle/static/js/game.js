@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const nameElement = document.createElement("span");
                     nameElement.textContent = player.name;
                     nameElement.style.display = "inline-block"; // インラインブロックに設定
-                    nameElement.style.width = "100px"; // 固定幅を設定
+                    nameElement.style.width = "200px"; // 固定幅を設定
 
                     // 失格表示
                     const eliminatedElement = document.createElement("span");
@@ -106,13 +106,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 // ゲーム終了かつ新しいゲームが開始されている場合のみボタンを表示
                 const returnButton = document.querySelector("#returnToGuest");
+                const hiraganaBoard = document.querySelector("#hiragana-board");
+                
                 if (!state.game_started && !state.game_finished && state.theme) {
-                    returnButton.style.display = "block";
-                    returnButton.addEventListener("click", () => {
-                        window.location.href = "/guest";
-                    });
-                } else {
-                    returnButton.style.display = "none";
+                    if (returnButton) {
+                        returnButton.style.display = "block";
+                        // returnToGuestボタンのクリックイベントを追加
+                        returnButton.addEventListener("click", () => {
+                            window.location.href = "/guest";
+                        });
+                    }
+                    // returnToGuestが表示される時にhiragana-boardを非表示にする
+                    if (hiraganaBoard) {
+                        hiraganaBoard.style.display = "none";
+                    }
                 }
             })
             .catch((error) => {
@@ -147,4 +154,3 @@ document.addEventListener("DOMContentLoaded", () => {
     // 1秒ごとにゲーム状態を更新
     setInterval(updateGameState, 1000);
 });
-

@@ -19,12 +19,24 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     };
 
+    // プレイヤー名の長さをチェックする関数
+    const validatePlayerName = (name) => {
+        const encoder = new TextEncoder();
+        const byteLength = encoder.encode(name).length;
+        return byteLength <= 36;
+    };
+
     // フォーム送信時にプレイヤーデータを送信
     guestForm.addEventListener("submit", (event) => {
         event.preventDefault();
 
         const playerName = document.querySelector("#playerName").value.trim();
         const keyword = document.querySelector("#keyword").value.trim();
+
+        if (!validatePlayerName(playerName)) {
+            errorMessage.textContent = "プレイヤー名は全角12文字までで入力してください。";
+            return;
+        }
 
         fetch("/join", {
             method: "POST",
